@@ -14,7 +14,7 @@ pip install kaggle
 or you can directly install it from the python dependencies directly.
 
 ```bash
-pip isntall -r requirements.txt
+pip install -r requirements.txt
 ```
 
 - Kaggle API credentials (username and key) stored in a `.env` file in the same directory as this script. Example `.env` file: You should have a Kaggle account first and then create a new API token. This will download a `../kaggle.json` file that will contain your `username` and `kaggle-key`. That will be used to setup the `.env` file as shown below (just replace the placeholders).  
