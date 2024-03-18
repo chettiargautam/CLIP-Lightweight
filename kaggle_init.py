@@ -53,10 +53,18 @@ def main() -> None:
     """
     Main Function:
     - Uses argparse to parse the command line arguments. Looks to receive the dataset size and the root directory, otherwise defaults to 8k and CLIP-Lightweight/data.
+    - Deletes the flickr8k.zip and flickr-image-dataset.zip files after unzipping the dataset.
     Args:
     - None
     Returns:
     - None
+
+    Example:
+    >>> cd CLIP-Lightweight/
+    >>> pwd
+    /Users/username/CLIP-Lightweight
+    >>> python kaggle_init.py --dataset_size 30k --root_directory data/
+    >>> python kaggle_init.py
     """
     parser = argparse.ArgumentParser(description='Dataset Downloader')
     parser.add_argument('--dataset_size', type=str, default='8k', help='Dataset Size: 8k or 30k')
@@ -66,9 +74,11 @@ def main() -> None:
     if args.dataset_size == "30k":
         print(f"--> Downloading the {args.dataset_size} dataset in the {args.root_directory} directory")
         dataset_downloader(dataset_size=args.dataset_size, root_directory=args.root_directory)
+        os.system(f'rm {args.root_directory}flickr-image-dataset.zip')
     else:
         print(f"--> Downloading the 8k dataset in the {args.root_directory} directory")
         dataset_downloader(dataset_size=args.dataset_size, root_directory=args.root_directory)
+        os.system(f'rm {args.root_directory}flickr8k.zip')
 
     print("--> Dataset Downloaded Successfully!")
 
