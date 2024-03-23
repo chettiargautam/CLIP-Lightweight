@@ -29,7 +29,7 @@ KAGGLE_KEY = your_kaggle_api_key
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/your_username/CLIP-Lightweight.git
+git clone https://github.com/chettiargautam/CLIP-Lightweight.git
 ```
 
 2. Navigate to the project directory:
