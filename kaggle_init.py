@@ -8,6 +8,7 @@ load_dotenv()
 INSTRUCTIONS:
 This file is used to load the environment variables from the .env file. Run this file before running any other file in the cmd line.
 - The .env file should be in the same directory as this file, set your credentials to the KAGGLE_USERNAME and KAGGLE_KEY variables accordingly.
+- This file is completed and doesn't need any changes.
 >>> cd CLIP-Lightweight/
 >>> pwd
 /Users/username/CLIP-Lightweight
