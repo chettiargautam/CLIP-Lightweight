@@ -49,16 +49,16 @@ class TextEncoder(torch.nn.Module):
 
         self.target_token_index = 0
 
-    def forward(self, inputs: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
         """
         Forward pass for the text encoder:
         - Accepts the inputs tensor which is the tokenized text input.
-        - The tokenized text input is passed through the model to get the text embeddings.
+        - The tokenized text input_ids is passed through the model to get the text embeddings.
         - The text embeddings are returned. The embedding size depends on the model used.
         - We use the CLS token hidden representation as the sentence's embedding
 
         Args:
-        - inputs: The tokenized text input tensor.
+        - input_ids: The tokenized text input tensor.
         - attention_mask: The attention mask tensor for the input.
 
         Returns:
@@ -76,7 +76,7 @@ class TextEncoder(torch.nn.Module):
         >>> output[0].shape
         torch.Size([1, cfg.text_embedding_dimension])
         """
-        output = self.model(inputs, attention_mask=attention_mask)
+        output = self.model(input_ids, attention_mask=attention_mask)
         embeddings = output.last_hidden_state[:, self.target_token_index, :]
 
         return embeddings
