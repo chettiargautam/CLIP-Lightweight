@@ -11,11 +11,7 @@ Before starting, ensure you have the following:
 pip install kaggle
 ```   
 
-or you can directly install it from the python dependencies directly.
-
-```bash
-pip install -r requirements.txt
-```
+or you can directly install it from the python dependencies directly, which is later explained in the setup section.
 
 - Kaggle API credentials (username and key) stored in a `.env` file in the same directory as this script. Example `.env` file: You should have a Kaggle account first and then create a new API token. This will download a `../kaggle.json` file that will contain your `username` and `kaggle-key`. That will be used to setup the `.env` file as shown below (just replace the placeholders).  
 
@@ -67,14 +63,16 @@ python kaggle_init.py --dataset_size <dataset_size> --root_directory <root_direc
 
 Example:
 
+A simple run to install the smaller dataset (recommended) would be simply just:
+
+```bash
+python kaggle_init.py
+```
+
+Further specifications (as explained in the `kaggle_init.py` file docstrings) can be used to change the choice of the dataset and the root directory (not recommended to change the default).
+
 ```bash
 python kaggle_init.py --dataset_size 30k --root_directory data/
 ```
 
 This will download the 30k dataset into the `data/` directory.
-
-Another simple run to install the smaller dataset (recommended) would be simply just:
-
-```bash
-python kaggle_init.py
-```
