@@ -6,6 +6,10 @@ from tqdm.auto import tqdm
 import config as cfg
 
 
+"""Setting the image data type to 8-bit integer"""
+IMAGE_DTYPE = torch.int8
+
+
 class CLIPDataset(torch.utils.data.Dataset):
     def __init__(self, images_path: str, captions_path: str, tokenizer, transforms=None) -> None:
         """
@@ -13,13 +17,26 @@ class CLIPDataset(torch.utils.data.Dataset):
         - Takes in the parameters which contain information on the images and captions.
         - Accepts the path of the images and the path of the captions.
         - Also accepts the tokenizer, max_length and the transform.
+        - The images are read from the images_path and the captions are read from the captions_path.
+        - The captions are tokenized using the tokenizer and the max_length.
+        - The transforms are applied to the images during the __getitem__ function call.
         - Fully aware that one image has one or more captions, and this needs to be considered during training.
 
         Args:
-        - images_path: Path to the images. Default is 'data/Images/'.
-        - captions_path: Path to the captions. Default is 'data/captions.txt'.
+        - images_path: Path to the images (directory). Default is 'data/Images/'.
+        - captions_path: Path to the captions (filepath). Default is 'data/captions.txt'.
         - tokenizer: Tokenizer for the captions. This is most likely a HuggingFace tokenizer that is used to convert the text captions to embeddings.
         - transforms: Transforms for the images. Default is None.
+
+        Example:
+        >>> dataset = CLIPDataset(images_path="data/Images", captions_path="data/captions.txt", tokenizer=tokenizer, transforms=transforms)
+        >>> dataset.image_filenames
+        ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', ...]
+        >>> dataset.captions
+        ['A black cat is sitting on a white table.', 'A brown dog is running in the grass.', 'A white cat is sleeping on a brown couch.', ...]
+        >>> dataset.encoded_captions
+        {'input_ids': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]), 
+        'attention_mask': tensor([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...]])}
         """
         self.images_path = images_path
         self.captions_path = captions_path
@@ -67,7 +84,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         - index: Index of the item to be returned from the dataset.
 
         Returns:
-        - A dictionary containing the image and the caption.
+        - A dictionary containing the image and the caption. This is in the torch dataset format.
 
         Example:
         >>> dataset = CLIPDataset(images_path="data/Images", captions_path="data/captions.txt", tokenizer=tokenizer, transforms=transforms)
@@ -79,7 +96,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000],
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000],
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000]]]), 
-        'caption': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]])}
+        'label': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]])}
         """
         image_filename = self.image_filenames[index]
         image_path = os.path.join(self.images_path, image_filename)
@@ -92,8 +109,8 @@ class CLIPDataset(torch.utils.data.Dataset):
         caption = self.encoded_captions["input_ids"][index]
 
         return {
-            "image": torch.tensor(image, dtype=torch.int8),
-            "caption": caption
+            "image": torch.tensor(image, dtype=IMAGE_DTYPE),
+            "label": caption
         }
     
 
