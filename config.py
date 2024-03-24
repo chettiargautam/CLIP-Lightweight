@@ -51,7 +51,7 @@ image_embedding_dimension = 2048
 text_encoder_model = "distilbert-base-uncased"
 text_embedding_dimension = 768
 text_tokenizer = "distilbert-base-uncased"
-max_length = 200
+max_length = 512
 
 pretrained = False 
 trainable = False 

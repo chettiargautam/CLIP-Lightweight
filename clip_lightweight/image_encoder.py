@@ -46,6 +46,8 @@ class ImageEncoder(torch.nn.Module):
         - Accepts the inputs tensor which is the image tensor.
         - The image tensor is passed through the model to get the image embeddings.
         - The image embeddings are returned. The embedding size depends on the model used.
+        - Permute the input dimensions to match the model input shape.
+        - If the input is not batched, add a batch dimension.
 
         Args:
         - inputs: The image tensor which is passed through the model.
@@ -55,11 +57,14 @@ class ImageEncoder(torch.nn.Module):
 
         Example:
         >>> image_encoder = ImageEncoder()
-        >>> image = torch.randn(num_images, 3, cfg.image_size, cfg.image_size)
+        >>> image = torch.randn(num_images, cfg.image_size, cfg.image_size, 3)
         >>> output = image_encoder(image)
         >>> output.shape
         torch.Size([num_images, cfg.image_embedding_dimension]) # Projection will be done later
         >>> output[0]
         tensor([[ 0.1234, -0.5678,  0.9876, ...]])
         """
+        if len(inputs.shape) == 3:
+            inputs = inputs.unsqueeze(0)
+        inputs = inputs.permute(0, 3, 1, 2)
         return self.model(inputs)

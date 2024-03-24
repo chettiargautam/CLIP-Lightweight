@@ -74,7 +74,7 @@ class CLIP(torch.nn.Module):
         Example:
         >>> clip = CLIP()
         >>> num_samples = num_images = num_texts
-        >>> images = torch.randn(num_samples, 3, cfg.image_size, cfg.image_size) # (num_images, 3, cfg.image_size, cfg.image_size)
+        >>> images = torch.randn(num_samples, cfg.image_size, cfg.image_size, 3) # (num_images, cfg.image_size, cfg.image_size, 3)
         >>> texts = torch.randn(num_samples, cfg.max_length) # (num_texts, cfg.max_length)
         >>> inputs = {"images": images, "texts": texts}
         >>> _, image_embeddings, text_embeddings = clip(inputs)

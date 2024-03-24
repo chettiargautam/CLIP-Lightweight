@@ -76,7 +76,7 @@ class TextEncoder(torch.nn.Module):
         >>> output[0].shape
         torch.Size([1, cfg.text_embedding_dimension])
         """
-        output = self.model(input_ids, attention_mask=attention_mask)
+        output = self.model(input_ids, attention_mask)
         embeddings = output.last_hidden_state[:, self.target_token_index, :]
 
         return embeddings

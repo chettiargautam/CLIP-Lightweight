@@ -1,6 +1,7 @@
 import os, cv2, torch
 import albumentations as A
 from tqdm.auto import tqdm
+from transformers import DistilBertTokenizer, DistilBertConfig
 
 """Importing the configuration file for the dataset"""
 import config as cfg
@@ -11,7 +12,7 @@ IMAGE_DTYPE = torch.int8
 
 
 class CLIPDataset(torch.utils.data.Dataset):
-    def __init__(self, images_path: str, captions_path: str, tokenizer, transforms=None) -> None:
+    def __init__(self, images_path: str, captions_path: str, transforms=None) -> None:
         """
         Constructor for the dataset:
         - Takes in the parameters which contain information on the images and captions.
@@ -25,7 +26,6 @@ class CLIPDataset(torch.utils.data.Dataset):
         Args:
         - images_path: Path to the images (directory). Default is 'data/Images/'.
         - captions_path: Path to the captions (filepath). Default is 'data/captions.txt'.
-        - tokenizer: Tokenizer for the captions. This is most likely a HuggingFace tokenizer that is used to convert the text captions to embeddings.
         - transforms: Transforms for the images. Default is None.
 
         Example:
@@ -37,6 +37,10 @@ class CLIPDataset(torch.utils.data.Dataset):
         >>> dataset.encoded_captions
         {'input_ids': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]), 
         'attention_mask': tensor([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...]])}
+        >>> dataset.encoded_captions['input_ids'].shape
+        torch.Size([num_samples, cfg.max_length])
+        >>> dataset.encoded_captions['attention_mask'].shape
+        torch.Size([num_samples, cfg.max_length])
         """
         self.images_path = images_path
         self.captions_path = captions_path
@@ -47,19 +51,21 @@ class CLIPDataset(torch.utils.data.Dataset):
 
         print("Loading the image file names and captions from the captions.txt file...")
         for line in tqdm(open(self.captions_path, 'r')):
-            image_filename, caption = line.strip().split('\t')
+            information = line.strip().split(',')
+            image_filename, caption = information[0], information[1]
             self.image_filenames.append(image_filename.strip())
             self.captions.append(caption.strip())
         print("Done loading the image file names and captions from the captions.txt file...")
 
+        self.image_filenames = self.image_filenames[1:]
+        self.captions = self.captions[1:]
+
+        self.encoded_captions = []
+
+        tokenizer = DistilBertTokenizer.from_pretrained(cfg.text_encoder_model, do_lower_case=True, add_special_tokens=True, max_length=cfg.max_length, pad_to_max_length=True, return_tensors="pt")
+
         print("Encoding the captions into their respective embeddings...")
-        self.encoded_captions = tokenizer(
-            self.captions, 
-            padding=True, 
-            truncation=True, 
-            max_length=cfg.max_length, 
-            return_tensors="pt"
-        )
+        self.encoded_captions = tokenizer(self.captions, max_length=cfg.max_length, padding="max_length", truncation=True, return_tensors="pt")
         print("Done encoding the captions into their respective embeddings...")
 
     def __len__(self) -> int:
@@ -85,6 +91,7 @@ class CLIPDataset(torch.utils.data.Dataset):
 
         Returns:
         - A dictionary containing the image and the caption. This is in the torch dataset format.
+        - The image is a tensor and the caption is a dictionary containing the input_ids and the attention_mask.
 
         Example:
         >>> dataset = CLIPDataset(images_path="data/Images", captions_path="data/captions.txt", tokenizer=tokenizer, transforms=transforms)
@@ -96,7 +103,16 @@ class CLIPDataset(torch.utils.data.Dataset):
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000],
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000],
         [0.0000, 0.0000, 0.0000,  ..., 0.0000, 0.0000, 0.0000]]]), 
-        'label': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]])}
+        'label': {
+            'input_ids': tensor([[  101,  1045,  1005,  2310,  1037,  2158,  1997,  1996,  1005,  2310, 1005, ...]),
+            'attention_mask': tensor([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...]])
+        }}
+        >>> dataset[0]['image'].shape
+        torch.Size([3, cfg.image_size, cfg.image_size])
+        >>> dataset[0]['label']['input_ids'].shape
+        torch.Size([1, cfg.max_length])
+        >>> dataset[0]['label']['attention_mask'].shape
+        torch.Size([1, cfg.max_length])
         """
         image_filename = self.image_filenames[index]
         image_path = os.path.join(self.images_path, image_filename)
@@ -104,13 +120,17 @@ class CLIPDataset(torch.utils.data.Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         if self.transforms:
-            image = self.transforms(image=image)["image"]
+            image = self.transforms()(image=image)["image"]
 
-        caption = self.encoded_captions["input_ids"][index]
+        input_ids = self.encoded_captions["input_ids"][index]
+        attention_mask = self.encoded_captions["attention_mask"][index]
 
         return {
-            "image": torch.tensor(image, dtype=IMAGE_DTYPE),
-            "label": caption
+            "image": torch.tensor(image),
+            "label": {
+                "input_ids": input_ids,
+                "attention_mask": attention_mask
+            }
         }
     
 
